@@ -24,6 +24,9 @@ except ImportError:
    from Tkinter import *     # python 2
 from math import *
 
+from mapper.mapper import Mapper # map coordinates
+import sys # to read parameters from command line
+
 def createZeroMat(m,n):
     """Return a matrix (m x n) filled with zeros."""
 
@@ -84,8 +87,14 @@ def init():
     global ROT_X, ROT_Y, ROT_Z
     global eps, EPS, tet
     global lastX, lastY, tetColor, bgColor
+    global mapp
 
-    tet = matTrans([[0,-100,0],[-100,100,0],[100,100,0],[0,0,200]])
+    mapp = Mapper([0, 0, 100, 100], [0, 0, 400, 400])
+    tet = matTrans([[0, -1, 0], [-1, 1, 0], [1, 1, 0], [0, 0, 2]])
+    tet = [mapp.windowToViewport(tet[i]) for i in range(len(tet))]
+    print(tet)
+
+    # tet = matTrans([[0,-100,0],[-100,100,0],[100,100,0],[0,0,200]])
  
     # counter-clockwise rotation about the X axis
     ROT_X = lambda x: matTrans([[1,0,0],           [0,cos(x),-sin(x)], [0,sin(x),cos(x)] ])
