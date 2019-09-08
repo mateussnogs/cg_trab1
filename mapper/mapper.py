@@ -36,6 +36,7 @@ class Mapper:
         Y_c = 0.5 * (Y_min + Y_max)
         self.c_1 = X_c - self.fx * x_c
         self.c_2 = Y_c - self.fy * y_c
+        
 
     ## Maps a single point from world coordinates to viewport (screen) coordinates.
     #
@@ -77,7 +78,7 @@ class Mapper:
 
 def main():
     # maps the unit rectangle onto a viewport of 400x400 pixels.
-    map = mapper([-1,-1,1,1], [0,0,400,400])
+    map = Mapper([-1,-1,1,1], [0,0,400,400])
     p1, p2 = map.windowToViewport((0,0),(1,1))
     p = map.viewportToWindow(400,400)
     print ("%s - %s" % (p1,p2)) # (200, 200) - (400, 0)

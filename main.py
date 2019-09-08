@@ -76,10 +76,33 @@ def drawTet(tet,col):
     nv = len(tet[0])   # number of vertices in tet (4)
 
     # draw the 6 edges of the tetrahedron
+    
     for p1 in range(nv):
-        for p2 in range(p1+1,nv):
+        for p2 in range(p1+1,nv):       
             canvas.create_line(translate(tet[0][p1], tet[1][p1], w, h),
                                translate(tet[0][p2], tet[1][p2], w, h), fill = col)
+
+    face1 = [tet[0][0], tet[1][0], tet[0][1], tet[1][1], tet[0][2], tet[1][2]]
+    face1 = [translate(face1[i], face1[i+1], w, h) for i in range(0, len(face1), 2)]
+
+    face2 = [tet[0][0], tet[1][0], tet[0][1], tet[1][1], tet[0][3], tet[1][3]]
+    face2 = [translate(face2[i], face2[i+1], w, h) for i in range(0, len(face2), 2)]
+
+    face3 = [tet[0][0], tet[1][0], tet[0][2], tet[1][2], tet[0][3], tet[1][3]]
+    face3 = [translate(face3[i], face3[i+1], w, h) for i in range(0, len(face3), 2)]
+
+    face4 = [tet[0][1], tet[1][1], tet[0][2], tet[1][2], tet[0][3], tet[1][3]]
+    face4 = [translate(face4[i], face4[i+1], w, h) for i in range(0, len(face4), 2)]
+
+    canvas.create_polygon(face1, outline='red',
+                fill='blue', width=2)
+    canvas.create_polygon(face2, outline='yellow',
+                fill='green', width=2)
+    canvas.create_polygon(face3, outline='#f11',
+                fill='black', width=2)
+    canvas.create_polygon(face4, outline='#f11',
+                fill='grey', width=2)            
+    
 
 def init():
     """Initialize global variables."""
@@ -89,11 +112,12 @@ def init():
     global lastX, lastY, tetColor, bgColor
     global mapp
 
-    mapp = Mapper([0, 0, 100, 100], [0, 0, 400, 400])
-    tet = matTrans([[0, -1, 0], [-1, 1, 0], [1, 1, 0], [0, 0, 2]])
-    tet = [mapp.windowToViewport(tet[i]) for i in range(len(tet))]
+    mapp = Mapper([-1, -1, 1, 1], [-200, -200, 200, 200])
+    tet = [[0, 0.8, 0], [-0.8, -0.8, 0], [0.8, -0.8, 0], [0, 0, 2]]
+    tet = mapp.windowToViewport(tet[0], tet[1], tet[2], tet[3])
+    tet = [tet[i]+(0,) if i < 3 else tet[i]+(200,) for i in range(0, len(tet))]
+    tet = matTrans(tet)
     print(tet)
-
     # tet = matTrans([[0,-100,0],[-100,100,0],[100,100,0],[0,0,200]])
  
     # counter-clockwise rotation about the X axis
