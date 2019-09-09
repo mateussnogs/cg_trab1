@@ -224,13 +224,15 @@ def drawAxes(event):
 def drawBox(box, col):
     """Draw bounding box"""
 
-    nv = len(box[0]) # number of vertices of cube (8)
+    nv = len(box[0]) # number of vertices (of cube (8)
     # draw the 12 edges of the cube
     
     for p1 in range(nv):
-        for p2 in range(p1+1,nv):       
-            canvas.create_line(translate(box[0][p1], box[1][p1], 200, 200),
-                               translate(box[0][p2], box[1][p2], 200, 200), fill = col)
+        for p2 in range(p1+1,nv):
+            s = sum([abs(box[i][p2] - box[i][p1]) for i in range(len(box))])
+            if(s < 345):
+                canvas.create_line(translate(box[0][p1], box[1][p1], 200, 200),
+                            translate(box[0][p2], box[1][p2], 200, 200), fill = col)
     
 
 
