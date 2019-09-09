@@ -68,6 +68,7 @@ def translate(x,y,dx,dy):
     return x+dx, y+dy
    
 def drawTet(tet,col):
+    return
     """Draw a tetrahedron."""
 
     w = canvas.winfo_width()/2
@@ -98,9 +99,9 @@ def drawTet(tet,col):
                 fill='blue', width=2)
     canvas.create_polygon(face2, outline='yellow',
                 fill='green', width=2)
-    canvas.create_polygon(face3, outline='#f11',
+    canvas.create_polygon(face3, outline='orange',
                 fill='black', width=2)
-    canvas.create_polygon(face4, outline='#f11',
+    canvas.create_polygon(face4, outline='green',
                 fill='grey', width=2)            
     
 
@@ -108,7 +109,7 @@ def init():
     """Initialize global variables."""
 
     global ROT_X, ROT_Y, ROT_Z
-    global eps, EPS, tet
+    global eps, EPS, tet, ax
     global lastX, lastY, tetColor, bgColor
     global mapp
 
@@ -117,7 +118,10 @@ def init():
     tet = mapp.windowToViewport(tet[0], tet[1], tet[2], tet[3])
     tet = [tet[i]+(0,) if i < 3 else tet[i]+(200,) for i in range(0, len(tet))]
     tet = matTrans(tet)
-    print(tet)
+
+    ax = [[0, 0], [0, 100]]
+    ax = [translate(ax[i][0], ax[i][1], 400/2, 400/2) + (0,) for i in range(len(ax))]
+    print(ax)
     # tet = matTrans([[0,-100,0],[-100,100,0],[100,100,0],[0,0,200]])
  
     # counter-clockwise rotation about the X axis
@@ -150,15 +154,18 @@ def cbMottion(event):
        and mouse displacements in X direction to rotations about Y axis.""" 
 
     global tet
+    global ax
 
     # Y coordinate is upside down
     dx = lastY - event.y 
     tet = matMul(ROT_X(EPS(-dx)),tet)
-
+    ax = matMul(ROT_X(EPS(-dx)), ax)
     dy = lastX - event.x
     tet = matMul(ROT_Y(EPS(dy)),tet)
-
-    drawTet(tet,tetColor)
+    ax = matMul(ROT_Y(EPS(-dy)), ax)
+    drawTet(tet,tetColor)    
+    # drawAxes(event)
+    canvas.create_line(ax[0][0], ax[1][0], ax[0][1], ax[1][1], fill='red', width=2)
     cbClicked(event)   
 
 def wheelUp(event):
@@ -186,6 +193,11 @@ def resize(event):
     """Redraw the tetrahedron, in case of a window change due to user resizing it.""" 
 
     drawTet(tet,tetColor)
+
+def drawAxes(event):
+    """Draw the axes in center"""
+    global ax       
+    canvas.create_line(ax[0][0], ax[1][0], ax[0][1], ax[1][1], fill='red', width=2)
                 
 def main():
     global canvas
@@ -200,7 +212,7 @@ def main():
     canvas.bind("<Button-1>", cbClicked)
     canvas.bind("<B1-Motion>", cbMottion)
     canvas.bind("<Configure>", resize)
-
+    
     from platform import uname
     os = uname()[0]
     if ( os == "Linux" ):
@@ -210,9 +222,8 @@ def main():
          canvas.bind('<MouseWheel>', wheel)      # MacOS
     else: 
          canvas.bind_all('<MouseWheel>', wheel)  # windows
-
-    drawTet(tet,tetColor)
-
+    canvas.master.bind('<x>', drawAxes)
+    # drawTet(tet,tetColor)
     mainloop()
 
 if __name__=='__main__':
