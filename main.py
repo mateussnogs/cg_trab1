@@ -68,7 +68,7 @@ def translate(x,y,dx,dy):
     return x+dx, y+dy
    
 def drawTet(tet,col):
-    return
+    # return
     """Draw a tetrahedron."""
 
     w = canvas.winfo_width()/2
@@ -103,13 +103,12 @@ def drawTet(tet,col):
     #             fill='black', width=2)
     canvas.create_polygon(face4, outline='green',
                 fill='grey', width=2)            
-    
-
+                
 def init():
     """Initialize global variables."""
 
     global ROT_X, ROT_Y, ROT_Z
-    global eps, EPS, tet, ax
+    global eps, EPS, tet, ax, box
     global lastX, lastY, tetColor, bgColor
     global mapp
 
@@ -118,12 +117,17 @@ def init():
     tet = mapp.windowToViewport(tet[0], tet[1], tet[2], tet[3])
     tet = [tet[i]+(0,) if i < 3 else tet[i]+(200,) for i in range(0, len(tet))]
     tet = matTrans(tet)
+    # tet = matTrans([[0,-100,0],[-100,100,0],[100,100,0],[0,0,200]])
+
 
     ax = [[0, 0, 0], [0, -100, 0], [0, 0, 0], [100, 0, 0], [0, 0, 0], [0, 0, 100]]
-    # ax = [(ax[i][0], ax[i][1]) + (0,) for i in range(len(ax))]
     ax = matTrans(ax)
-    # tet = matTrans([[0,-100,0],[-100,100,0],[100,100,0],[0,0,200]])
- 
+    
+    # a = 200 y aumenta pra baixo
+    box = [[-100, -100, 100], [100, -100, 100], [-100, -100, -100], [100, -100, -100],
+           [-100, 100, 100], [100, 100, 100], [-100, 100, -100], [100, 100, -100] ]
+    box = matTrans(box)
+
     # counter-clockwise rotation about the X axis
     ROT_X = lambda x: matTrans([[1,0,0],           [0,cos(x),-sin(x)], [0,sin(x),cos(x)] ])
 
@@ -155,18 +159,21 @@ def cbMottion(event):
 
     global tet
     global ax
+    global box
 
+    canvas.delete(ALL)
     # Y coordinate is upside down
     dx = lastY - event.y 
     tet = matMul(ROT_X(EPS(-dx)),tet)
     ax = matMul(ROT_X(EPS(-dx)), ax)
+    box = matMul(ROT_X(EPS(-dx)), box)
     dy = lastX - event.x
-    # tet = matMul(ROT_Y(EPS(dy)),tet)
+    tet = matMul(ROT_Y(EPS(dy)),tet)
     ax = matMul(ROT_Y(EPS(-dy)), ax)
-    # print(ax)
-    drawTet(tet,tetColor)    
+    drawTet(tet,tetColor)  
+    box = matMul(ROT_Y(EPS(-dy)), box)
+    drawBox(box, tetColor)  
     # drawAxes(event)
-    canvas.delete(ALL)
     canvas.create_line(translate(ax[0][0], ax[1][0], 200, 200), 
         translate(ax[0][1], ax[1][1], 200, 200), fill='red', width=2)
     canvas.create_line(translate(ax[0][2], ax[1][2], 200, 200),
@@ -174,7 +181,6 @@ def cbMottion(event):
     
     canvas.create_line(translate(ax[0][4], ax[1][4], 200, 200),
      translate(ax[0][5], ax[1][5], 200, 200), fill='blue', width=2)
-    print("", ax[0][5], ax[1][5], ax[2][5])
     cbClicked(event)   
 
 def wheelUp(event):
@@ -214,6 +220,20 @@ def drawAxes(event):
     
     canvas.create_line(translate(ax[0][4], ax[1][4], 200, 200),
      translate(ax[0][5], ax[1][5], 200, 200), fill='blue', width=2)
+
+def drawBox(box, col):
+    """Draw bounding box"""
+
+    nv = len(box[0]) # number of vertices of cube (8)
+    # draw the 12 edges of the cube
+    
+    for p1 in range(nv):
+        for p2 in range(p1+1,nv):       
+            canvas.create_line(translate(box[0][p1], box[1][p1], 200, 200),
+                               translate(box[0][p2], box[1][p2], 200, 200), fill = col)
+    
+
+
                 
 def main():
     global canvas
@@ -240,6 +260,7 @@ def main():
          canvas.bind_all('<MouseWheel>', wheel)  # windows
     canvas.master.bind('<x>', drawAxes)
     # drawTet(tet,tetColor)
+    drawBox(box, tetColor)
     mainloop()
 
 if __name__=='__main__':
