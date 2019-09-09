@@ -99,8 +99,8 @@ def drawTet(tet,col):
                 fill='blue', width=2)
     canvas.create_polygon(face2, outline='yellow',
                 fill='green', width=2)
-    canvas.create_polygon(face3, outline='orange',
-                fill='black', width=2)
+    # canvas.create_polygon(face3, outline='orange',
+    #             fill='black', width=2)
     canvas.create_polygon(face4, outline='green',
                 fill='grey', width=2)            
     
@@ -119,9 +119,9 @@ def init():
     tet = [tet[i]+(0,) if i < 3 else tet[i]+(200,) for i in range(0, len(tet))]
     tet = matTrans(tet)
 
-    ax = [[0, 0], [0, 100]]
-    ax = [translate(ax[i][0], ax[i][1], 400/2, 400/2) + (0,) for i in range(len(ax))]
-    print(ax)
+    ax = [[0, 0, 0], [0, -100, 0], [0, 0, 0], [100, 0, 0], [0, 0, 0], [0, 0, 100]]
+    # ax = [(ax[i][0], ax[i][1]) + (0,) for i in range(len(ax))]
+    ax = matTrans(ax)
     # tet = matTrans([[0,-100,0],[-100,100,0],[100,100,0],[0,0,200]])
  
     # counter-clockwise rotation about the X axis
@@ -161,11 +161,20 @@ def cbMottion(event):
     tet = matMul(ROT_X(EPS(-dx)),tet)
     ax = matMul(ROT_X(EPS(-dx)), ax)
     dy = lastX - event.x
-    tet = matMul(ROT_Y(EPS(dy)),tet)
+    # tet = matMul(ROT_Y(EPS(dy)),tet)
     ax = matMul(ROT_Y(EPS(-dy)), ax)
+    # print(ax)
     drawTet(tet,tetColor)    
     # drawAxes(event)
-    canvas.create_line(ax[0][0], ax[1][0], ax[0][1], ax[1][1], fill='red', width=2)
+    canvas.delete(ALL)
+    canvas.create_line(translate(ax[0][0], ax[1][0], 200, 200), 
+        translate(ax[0][1], ax[1][1], 200, 200), fill='red', width=2)
+    canvas.create_line(translate(ax[0][2], ax[1][2], 200, 200),
+     translate(ax[0][3], ax[1][3], 200, 200), fill='green', width=2)
+    
+    canvas.create_line(translate(ax[0][4], ax[1][4], 200, 200),
+     translate(ax[0][5], ax[1][5], 200, 200), fill='blue', width=2)
+    print("", ax[0][5], ax[1][5], ax[2][5])
     cbClicked(event)   
 
 def wheelUp(event):
@@ -197,7 +206,14 @@ def resize(event):
 def drawAxes(event):
     """Draw the axes in center"""
     global ax       
-    canvas.create_line(ax[0][0], ax[1][0], ax[0][1], ax[1][1], fill='red', width=2)
+    canvas.create_line(translate(ax[0][0], ax[1][0], 200, 200),
+     translate(ax[0][1], ax[1][1], 200, 200), fill='red', width=2)
+
+    canvas.create_line(translate(ax[0][2], ax[1][2], 200, 200),
+     translate(ax[0][3], ax[1][3], 200, 200), fill='green', width=2)
+    
+    canvas.create_line(translate(ax[0][4], ax[1][4], 200, 200),
+     translate(ax[0][5], ax[1][5], 200, 200), fill='blue', width=2)
                 
 def main():
     global canvas
