@@ -285,6 +285,13 @@ def drawDodecahedron(dodec, col):
     canvas.create_polygon(face12, outline='red',
                 fill='indian red', width=1)                                                                                     
     
+
+def normalSurface(solid, vertexes):
+	normal = [0, 0, 0]
+	nv = len(polygon)
+	for i in range(nv):
+		x, y, z = polygon[i], polygon[i+1], polygon[i+2]
+
                 
 def init():
     """Initialize global variables."""
