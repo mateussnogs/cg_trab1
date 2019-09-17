@@ -28,174 +28,281 @@ from mapper.mapper import Mapper # map coordinates
 import sys # to read parameters from command line
 from matrix.ops import *
 from mapper.mymapper import AffineMapper
+from vector import *
 
    
 def drawTet(tet,col):
-    # return
-    """Draw a tetrahedron."""
+	"""Draw a tetrahedron."""
+	global tetNormals
 
-    w = canvas.winfo_width()/2
-    h = canvas.winfo_height()/2
-    canvas.delete(ALL) # delete all edges
-    nv = len(tet[0])   # number of vertices in tet (4)
+	w = canvas.winfo_width()/2
+	h = canvas.winfo_height()/2
+	canvas.delete(ALL) # delete all edges
+	nv = len(tet[0])   # number of vertices in tet (4)
 
-    # draw the 6 edges of the tetrahedron
-    
-    # for p1 in range(nv):
-    #     for p2 in range(p1+1,nv):       
-    #         canvas.create_line(translate(tet[0][p1], tet[1][p1], w, h),
-    #                            translate(tet[0][p2], tet[1][p2], w, h), fill = col)
+	# draw the 6 edges of the tetrahedron
 
-    face1 = [tet[0][0], tet[1][0], tet[0][1], tet[1][1], tet[0][2], tet[1][2]]
-    face1 = [translate(face1[i], face1[i+1], w, h) for i in range(0, len(face1), 2)]
-    face2 = [tet[0][0], tet[1][0], tet[0][1], tet[1][1], tet[0][3], tet[1][3]]
-    face2 = [translate(face2[i], face2[i+1], w, h) for i in range(0, len(face2), 2)]
+	# for p1 in range(nv):
+	#     for p2 in range(p1+1,nv):       
+	#         canvas.create_line(translate(tet[0][p1], tet[1][p1], w, h),
+	#                            translate(tet[0][p2], tet[1][p2], w, h), fill = col)
 
-    face3 = [tet[0][0], tet[1][0], tet[0][2], tet[1][2], tet[0][3], tet[1][3]]
-    face3 = [translate(face3[i], face3[i+1], w, h) for i in range(0, len(face3), 2)]
+	face1 = [tet[0][1], tet[1][1], tet[0][2], tet[1][2], tet[0][3], tet[1][3], tet[0][1], tet[1][1]]    
+	face1 = [translate(face1[i], face1[i+1], w, h) for i in range(0, len(face1), 2)]
+	tetNormals[0] = [tet[0][1], tet[1][1], tet[2][1], tet[0][2], tet[1][2], tet[2][2], tet[0][3], tet[1][3], tet[2][3]]
 
-    face4 = [tet[0][1], tet[1][1], tet[0][2], tet[1][2], tet[0][3], tet[1][3]]
-    face4 = [translate(face4[i], face4[i+1], w, h) for i in range(0, len(face4), 2)]
+	face2 = [tet[0][1], tet[1][1], tet[0][0], tet[1][0], tet[0][2], tet[1][2], tet[0][1], tet[1][1]]
+	face2 = [translate(face2[i], face2[i+1], w, h) for i in range(0, len(face2), 2)]
+	tetNormals[1] = [tet[0][1], tet[1][1], tet[2][1], tet[0][0], tet[1][0], tet[2][0], tet[0][2], tet[1][2], tet[2][2]]
 
-    canvas.create_polygon(face1, outline='red',
-                fill='blue', width=2)
-    canvas.create_polygon(face2, outline='yellow',
-                fill='green', width=2)
-    canvas.create_polygon(face3, outline='orange',
-                fill='black', width=2)
-    canvas.create_polygon(face4, outline='green',
-                fill='grey', width=2)  
+	face3 = [tet[0][3], tet[1][3], tet[0][2], tet[1][2], tet[0][0], tet[1][0], tet[0][3], tet[1][3]]
+	face3 = [translate(face3[i], face3[i+1], w, h) for i in range(0, len(face3), 2)]
+	tetNormals[2] = [tet[0][3], tet[1][3], tet[2][3], tet[0][2], tet[1][2], tet[2][2], tet[0][0], tet[1][0], tet[2][0]]
+
+	face4 = [tet[0][0], tet[1][0], tet[0][1], tet[1][1], tet[0][3], tet[1][3], tet[0][0], tet[1][0]]
+	face4 = [translate(face4[i], face4[i+1], w, h) for i in range(0, len(face4), 2)]
+	tetNormals[3] = [tet[0][0], tet[1][0], tet[2][0], tet[0][1], tet[1][1], tet[2][1], tet[0][3], tet[1][3], tet[2][3]]
+
+	faces = [face1, face2, face3, face4] 
+	# canvas.create_polygon(face1, outline='red',
+	#             fill='blue', width=1)
+	# canvas.create_polygon(face2, outline='yellow',
+	#             fill='green', width=1)
+	# canvas.create_polygon(face3, outline='orange',
+	#             fill='black', width=1)
+	# canvas.create_polygon(face4, outline='green',
+	#             fill='grey', width=1)  
+
+	facesToDraw = backfaceCulling(tetNormals)
+	for faceNumber in facesToDraw:
+		canvas.create_polygon(faces[faceNumber], outline='red',
+	        fill='pink', width=1)
+		drawNormals(tetNormals[faceNumber])    
 
 
 def drawCube(cube, col):
-    w = canvas.winfo_width()/2
-    h = canvas.winfo_height()/2
-    canvas.delete(ALL) # delete all edges
-    nv = len(cube[0])   # number of vertices in cube (8)
+	w = canvas.winfo_width()/2
+	h = canvas.winfo_height()/2
+	canvas.delete(ALL) # delete all edges
+	nv = len(cube[0])   # number of vertices in cube (8)
+	global cubeNormals
 
-    # draw the 6 faces of the tetrahedron
-    face1 = [
-    	cube[0][0], cube[1][0], 
-        cube[0][1], cube[1][1],
-        cube[0][3], cube[1][3],
-        cube[0][2], cube[1][2],
-        cube[0][0], cube[1][0]
-       ]
-    face1 = [translate(face1[i], face1[i+1], w, h) for i in range(0, len(face1), 2)]
-    face2 = [
-    	cube[0][1], cube[1][1],
-        cube[0][5], cube[1][5], 
-        cube[0][7], cube[1][7],
-        cube[0][3], cube[1][3],
-        cube[0][1], cube[1][1] 
-    ]
-    face2 = [translate(face2[i], face2[i+1], w, h) for i in range(0, len(face2), 2)]
-    face3 = [
-    	cube[0][0], cube[1][0],
-        cube[0][4], cube[1][4], 
-        cube[0][6], cube[1][6],
-        cube[0][2], cube[1][2],
-        cube[0][0], cube[1][0] 
-    ]
-    face3 = [translate(face3[i], face3[i+1], w, h) for i in range(0, len(face3), 2)]
-    face4 = [
-    	cube[0][0], cube[1][0],
-        cube[0][1], cube[1][1], 
-        cube[0][5], cube[1][5],
-        cube[0][4], cube[1][4],
-        cube[0][0], cube[1][0] 
+	# draw the 6 faces of the tetrahedron
+	face1 = [
+		cube[0][0], cube[1][0], 
+	    cube[0][1], cube[1][1],
+	    cube[0][3], cube[1][3],
+	    cube[0][2], cube[1][2],
+	    cube[0][0], cube[1][0]
+	   ]
+	face1 = [translate(face1[i], face1[i+1], w, h) for i in range(0, len(face1), 2)]
+	cubeNormals[0] = [cube[0][0], cube[1][0], cube[2][0], cube[0][1], cube[1][1], cube[2][1], cube[0][3], cube[1][3], cube[2][3], cube[0][2], cube[1][2], cube[2][2], 
+	cube[0][0], cube[1][0], cube[2][0]] 
+		
+	face2 = [
+		cube[0][1], cube[1][1],
+	    cube[0][5], cube[1][5], 
+	    cube[0][7], cube[1][7],
+	    cube[0][3], cube[1][3],
+	    cube[0][1], cube[1][1] 
+	]    
+	face2 = [translate(face2[i], face2[i+1], w, h) for i in range(0, len(face2), 2)]
+	cubeNormals[1] = [cube[0][1], cube[1][1], cube[2][1], cube[0][5], cube[1][5], cube[2][5], cube[0][7], cube[1][7], cube[2][7], cube[0][3], cube[1][3], cube[2][3], cube[0][1],
+	 cube[1][1], cube[2][1]] 
+
+	face3 = [
+		cube[0][0], cube[1][0],
+	    cube[0][4], cube[1][4], 
+	    cube[0][6], cube[1][6],
+	    cube[0][2], cube[1][2],
+	    cube[0][0], cube[1][0] 
+	]
+	face3 = [translate(face3[i], face3[i+1], w, h) for i in range(0, len(face3), 2)]
+	cubeNormals[2] = [cube[0][0], cube[1][0], cube[2][0], cube[0][4], cube[1][4], cube[2][4], cube[0][6], cube[1][6], cube[2][6], cube[0][2], cube[1][2], cube[2][2], 
+	cube[0][0], cube[1][0], cube[2][0]]
+	face4 = [
+		cube[0][0], cube[1][0],
+	    cube[0][1], cube[1][1], 
+	    cube[0][5], cube[1][5],
+	    cube[0][4], cube[1][4],
+	    cube[0][0], cube[1][0] 
 	]	
-    face4 = [translate(face4[i], face4[i+1], w, h) for i in range(0, len(face4), 2)]
-    face5 = [
-    	cube[0][2], cube[1][2],
+	face4 = [translate(face4[i], face4[i+1], w, h) for i in range(0, len(face4), 2)]
+	cubeNormals[3] = [cube[0][0], cube[1][0], cube[2][0], cube[0][1], cube[1][1], cube[2][1], cube[0][5], cube[1][5], cube[2][5], cube[0][4], cube[1][4], cube[2][4], 
+		cube[0][0], cube[1][0], cube[2][0]]
+	face5 = [
+		cube[0][2], cube[1][2],
 	    cube[0][3], cube[1][3], 
 	    cube[0][7], cube[1][7],
 	    cube[0][6], cube[1][6],
 	    cube[0][2], cube[1][2]
 	]	
-    face5 = [translate(face5[i], face5[i+1], w, h) for i in range(0, len(face5), 2)]
-    face6 = [
-    	cube[0][4], cube[1][4],
-        cube[0][5], cube[1][5], 
-        cube[0][7], cube[1][7],
-        cube[0][6], cube[1][6],
-        cube[0][4], cube[1][4]
+	face5 = [translate(face5[i], face5[i+1], w, h) for i in range(0, len(face5), 2)]
+	cubeNormals[4] = [cube[0][2], cube[1][2], cube[2][2], cube[0][3], cube[1][3], cube[2][3], cube[0][7], cube[1][7], cube[2][7], cube[0][6], cube[1][6], cube[2][6], 
+		cube[0][2], cube[1][2], cube[2][2]]    
+	face6 = [
+		cube[0][4], cube[1][4],
+	    cube[0][5], cube[1][5], 
+	    cube[0][7], cube[1][7],
+	    cube[0][6], cube[1][6],
+	    cube[0][4], cube[1][4]
 	]	
-    face6 = [translate(face6[i], face6[i+1], w, h) for i in range(0, len(face6), 2)]
+	face6 = [translate(face6[i], face6[i+1], w, h) for i in range(0, len(face6), 2)]
+	cubeNormals[5] = [cube[0][4], cube[1][4], cube[2][4], cube[0][5], cube[1][5], cube[2][5], cube[0][7], cube[1][7], cube[2][7], cube[0][6], cube[1][6], cube[2][6], 
+		cube[0][4], cube[1][4], cube[2][4]]     
 
-    canvas.create_polygon(face1, outline='red',
-                fill='blue', width=2)
-    canvas.create_polygon(face2, outline='yellow',
-                fill='green', width=2)
-    canvas.create_polygon(face3, outline='yellow',
-                fill='red', width=2)
-    canvas.create_polygon(face4, outline='yellow',
-                fill='black', width=2)
-    canvas.create_polygon(face5, outline='yellow',
-                fill='yellow', width=2)
-    canvas.create_polygon(face6, outline='yellow',
-                fill='orange', width=2)
+	# canvas.create_polygon(face1, outline='red',
+	#             fill='blue', width=2)
+	# canvas.create_polygon(face2, outline='yellow',
+	#             fill='green', width=2)
+	# canvas.create_polygon(face3, outline='yellow',
+	#             fill='red', width=2)
+	# canvas.create_polygon(face4, outline='yellow',
+	#             fill='black', width=2)
+	# canvas.create_polygon(face5, outline='yellow',
+	#             fill='yellow', width=2)
+	# canvas.create_polygon(face6, outline='yellow',
+	#             fill='orange', width=2)
+	faces = [face1, face2, face3, face4, face5, face6]
+	facesToDraw = backfaceCulling(cubeNormals)
+	for faceNumber in facesToDraw:
+		canvas.create_polygon(faces[faceNumber], outline='red',
+	        fill='pink', width=1)
+		drawNormals(cubeNormals[faceNumber])     
 
 
 def drawOctahedron(octa, col):
-    w = canvas.winfo_width()/2
-    h = canvas.winfo_height()/2
-    canvas.delete(ALL) # delete all edges
-    face1 = [
-    	octa[0][4], octa[1][4], octa[0][0], octa[1][0], octa[0][1], octa[1][1], octa[0][4], octa[1][4]
-    ]
-    face1 = [translate(face1[i], face1[i+1], w, h) for i in range(0, len(face1), 2)]
+	w = canvas.winfo_width()/2
+	h = canvas.winfo_height()/2
+	canvas.delete(ALL) # delete all edges
+	global octaNormals
 
-    face2 = [
-    	octa[0][4], octa[1][4], octa[0][1], octa[1][1], octa[0][2], octa[1][2], octa[0][4], octa[1][4]
-    ]
-    face2 = [translate(face2[i], face2[i+1], w, h) for i in range(0, len(face2), 2)]
+	face1 = [
+		octa[0][4], octa[1][4], octa[0][0], octa[1][0], octa[0][1], octa[1][1], octa[0][4], octa[1][4]
+	]
+	face1 = [translate(face1[i], face1[i+1], w, h) for i in range(0, len(face1), 2)]
+	octaNormals[0] = [
+		octa[0][4], octa[1][4], octa[2][4], octa[0][0], octa[1][0], octa[2][0], octa[0][1], octa[1][1], octa[2][1]
+	]
 
-    face3 = [
+	face2 = [
+		octa[0][4], octa[1][4], octa[0][1], octa[1][1], octa[0][2], octa[1][2], octa[0][4], octa[1][4]
+	]
+	face2 = [translate(face2[i], face2[i+1], w, h) for i in range(0, len(face2), 2)]
+	octaNormals[1] = [
+		octa[0][4], octa[1][4], octa[2][4], octa[0][1], octa[1][1], octa[2][1], octa[0][2], octa[1][2], octa[2][2]
+	]    
+
+	face3 = [
 		octa[0][4], octa[1][4], octa[0][2], octa[1][2], octa[0][3], octa[1][3], octa[0][4], octa[1][4]
-    ]
-    face3 = [translate(face3[i], face3[i+1], w, h) for i in range(0, len(face3), 2)]
+	]
+	face3 = [translate(face3[i], face3[i+1], w, h) for i in range(0, len(face3), 2)]
+	octaNormals[2] = [
+		octa[0][4], octa[1][4], octa[2][4], octa[0][2], octa[1][2], octa[2][2], octa[0][3], octa[1][3], octa[2][3]
+	]        
 
-    face4 = [
+	face4 = [
 		octa[0][4], octa[1][4], octa[0][3], octa[1][3], octa[0][0], octa[1][0], octa[0][4], octa[1][4]
-    ]
-    face4 = [translate(face4[i], face4[i+1], w, h) for i in range(0, len(face4), 2)]
+	]
+	face4 = [translate(face4[i], face4[i+1], w, h) for i in range(0, len(face4), 2)]
+	octaNormals[3] = [
+		octa[0][4], octa[1][4], octa[2][4], octa[0][3], octa[1][3], octa[2][3], octa[0][0], octa[1][0], octa[2][0]
+	]        
 
-    face5 = [
+	face5 = [
 		octa[0][5], octa[1][5], octa[0][1], octa[1][1], octa[0][0], octa[1][0], octa[0][5], octa[1][5]
-    ]
-    face5 = [translate(face5[i], face5[i+1], w, h) for i in range(0, len(face5), 2)]
-
-    face6 = [
+	]
+	face5 = [translate(face5[i], face5[i+1], w, h) for i in range(0, len(face5), 2)]
+	octaNormals[4] = [
+		octa[0][5], octa[1][5], octa[2][5], octa[0][1], octa[1][1], octa[2][1], octa[0][0], octa[1][0], octa[2][0]
+	]    
+	face6 = [
 		octa[0][5], octa[1][5], octa[0][2], octa[1][2], octa[0][1], octa[1][1], octa[0][5], octa[1][5]
-    ]
-    face6 = [translate(face6[i], face6[i+1], w, h) for i in range(0, len(face6), 2)]    
+	]
+	face6 = [translate(face6[i], face6[i+1], w, h) for i in range(0, len(face6), 2)]  
+	octaNormals[5] = [
+		octa[0][5], octa[1][5], octa[2][5], octa[0][2], octa[1][2], octa[2][2], octa[0][1], octa[1][1], octa[2][1]
+	]          
 
-    face7 = [
+	face7 = [
 		octa[0][5], octa[1][5], octa[0][3], octa[1][3], octa[0][2], octa[1][2], octa[0][5], octa[1][5]
-    ]
-    face7 = [translate(face7[i], face7[i+1], w, h) for i in range(0, len(face7), 2)]
-    face8 = [
+	]
+	face7 = [translate(face7[i], face7[i+1], w, h) for i in range(0, len(face7), 2)]
+	octaNormals[6] = [
+		octa[0][5], octa[1][5], octa[2][5], octa[0][3], octa[1][3], octa[2][3], octa[0][2], octa[1][2], octa[2][2]
+	]            
+	face8 = [
 		octa[0][5], octa[1][5], octa[0][0], octa[1][0], octa[0][3], octa[1][3], octa[0][5], octa[1][5]
-    ]
-    face8 = [translate(face8[i], face8[i+1], w, h) for i in range(0, len(face8), 2)]          
-    canvas.create_polygon(face1, outline='red',
-                fill='blue', width=2)
-    canvas.create_polygon(face2, outline='red',
-                fill='green', width=2)
-    canvas.create_polygon(face3, outline='red',
-                fill='red', width=2)
-    canvas.create_polygon(face4, outline='red',
-                fill='yellow', width=2)
-    canvas.create_polygon(face5, outline='red',
-                fill='black', width=2)
-    canvas.create_polygon(face6, outline='red',
-                fill='gray', width=2)
-    canvas.create_polygon(face7, outline='red',
-                fill='orange', width=2)
-    canvas.create_polygon(face8, outline='red',
-                fill='pink', width=2)
+	]
+	face8 = [translate(face8[i], face8[i+1], w, h) for i in range(0, len(face8), 2)]          
+	octaNormals[7] = [
+		octa[0][5], octa[1][5], octa[2][5], octa[0][0], octa[1][0], octa[2][0], octa[0][3], octa[1][3], octa[2][3]
+	]
+	faces = [face1, face2, face3, face4, face5, face6, face7, face8]            
+	# canvas.create_polygon(face1, outline='red',
+	#             fill='blue', width=1)
+	# canvas.create_polygon(face2, outline='red',
+	#             fill='green', width=1)
+	# canvas.create_polygon(face3, outline='red',
+	#             fill='red', width=1)
+	# canvas.create_polygon(face4, outline='red',
+	#             fill='yellow', width=1)
+	# canvas.create_polygon(face5, outline='red',
+	#             fill='black', width=1)
+	# canvas.create_polygon(face6, outline='red',
+	#             fill='gray', width=1)
+	# canvas.create_polygon(face7, outline='red',
+	#             fill='orange', width=1)
+	# canvas.create_polygon(face8, outline='red',
+	#             fill='pink', width=1)
+	facesToDraw = backfaceCulling(octaNormals)
+	for faceNumber in facesToDraw:
+		canvas.create_polygon(faces[faceNumber], outline='red',
+            fill='pink', width=1)
+		drawNormals(octaNormals[faceNumber])
+
+def innerProduct(v1, v2):
+	return sum([v1[i]*v2[i] for i in range(len(v1))])
+
+def backfaceCulling(normals):
+	facesToDraw = []
+	for i in range(len(normals)):
+		normal = polygonNormal(normals[i])
+		if innerProduct([0, 0, -1], polygonNormal(normals[i])) > 0:
+		# if polygonNormal(normals[i])[2] >= 0:
+			facesToDraw.append(i)
+	return facesToDraw
     
+def polygonNormal(polygon):
+	normal = [0, 0, 0]
+	w = canvas.winfo_width()/2
+	h = canvas.winfo_height()/2
+	nv = len(polygon)//3 # each vertex has 3 coordinates
+	for i in range(0, nv*2, nv):
+		x1, y1, z1 = polygon[i], polygon[i+1], polygon[i+2]
+		x2, y2, z2 = polygon[i+nv], polygon[i+nv+1], polygon[i+nv+2]
+		normal[0] += (y1-y2)*(z1+z2)
+		normal[1] += (z1-z2)*(x1+x2)
+		normal[2] += (x1-x2)*(y1+y2)
+
+	normal = normalize(normal)
+	return normal
+
+def polygonCentroid(polygon):
+	w = canvas.winfo_width()/2
+	h = canvas.winfo_height()/2
+	cx = cy = 0
+	nv = int(len(polygon)/3) # to do: use //; each vertex has 3 coordinates
+	for i in range(0, nv*3, 3):
+		cx += polygon[i]
+		cy += polygon[i+1]
+		cz = polygon[i+2]
+	cx /= nv
+	cy /= nv
+	cz /= nv
+	# cx, cy = translate(cx, cy, w, h)
+	return [cx, cy, cz]	
+
 def drawDodecahedron(dodec, col):
     w = canvas.winfo_width()/2
     h = canvas.winfo_height()/2
@@ -285,12 +392,19 @@ def drawDodecahedron(dodec, col):
     canvas.create_polygon(face12, outline='red',
                 fill='indian red', width=1)                                                                                     
     
+def normalize(v):
+	size = sqrt(v[0]**2 + v[1]**2 + v[2]**2)
+	return [v[0]/size, v[1]/size, v[2]/size]
 
-def normalSurface(solid, vertexes):
-	normal = [0, 0, 0]
-	nv = len(polygon)
-	for i in range(nv):
-		x, y, z = polygon[i], polygon[i+1], polygon[i+2]
+def drawNormals(polygon):
+	normal = polygonNormal(polygon)
+	normal = list(map(lambda x:x*20, normal))
+	cx, cy = polygonCentroid(polygon)
+	canvas.create_line(cx, cy, normal[0]+cx, normal[1]+cy, fill='light goldenrod', width=2, arrow=LAST)
+
+def drawNormalsPolyhedron(polyhedron):
+	for polygon in polyhedron:
+		drawNormals(polygon)
 
                 
 def init():
@@ -299,20 +413,18 @@ def init():
     global ROT_X, ROT_Y, ROT_Z
     global eps, EPS, tet, ax, box, cube, octa, dodec
     global lastX, lastY, tetColor, bgColor
-    # global mapp
+    global tetNormals, cubeNormals, octaNormals
+    
+    tetNormals = [[0]*9]*4
+    cubeNormals = [[0]*12]*6
+    octaNormals = [[0]*9]*8
 
-    # mapp = Mapper([-1, -1, 1, 1], [-200, -200, 200, 200])
-    # tet = [[0, 0.8, 0], [-0.8, -0.8, 0], [0.8, -0.8, 0], [0, 0, 2]]
-    # tet = mapp.windowToViewport(tet[0], tet[1], tet[2], tet[3])
-    # tet = [tet[i]+(0,) if i < 3 else tet[i]+(200,) for i in range(0, len(tet))]
-    # tet = matTrans(tet)
-    # tet = matTrans([[0,-100,0],[-100,100,0],[100,100,0],[0,0,200]])
 
     mapper = AffineMapper([-1, -1, -1, 1, 1, 1], [-200, -200, -200, 200, 200, 200])
-
-    tet = [[0, 0.5, 0, 1], [-0.5, -0.5, 0, 1], [0.5, -0.5, 0, 1], [0, 0, 0.5, 1]]
+    tet = [[-0.5, -0.5, 0.5, 1], [0.5, 0.5, 0.5, 1], [0.5, -0.5, -0.5, 1], [-0.5, 0.5, -0.5, 1]]
     tet = matTrans(tet)
     tet = mapper.worldToViewport(tet)
+
 
     cube = [
          [-0.5, 0.5, -0.5, 1], [0.5, 0.5, -0.5, 1], [-0.5, -0.5, -0.5, 1], [0.5, -0.5, -0.5, 1],
@@ -351,7 +463,7 @@ def init():
     ROT_Y = lambda y: matTrans([[cos(y),0,sin(y), 0], [0,1,0, 0],            [-sin(y),0,cos(y), 0], [0, 0, 0, 1]])
 
     # counter-clockwise rotation about the Z axis
-    ROT_Z = lambda z: matTrans([[cos(z),sin(z),0, 0], [-sin(z),cos(z),0, 0], [0,0,1, 0], [0, 0, 0, 1]])
+    ROT_Z = lambda z: matTrans([[cos(z),-sin(z),0, 0], [sin(z),cos(z),0, 0], [0,0,1, 0], [0, 0, 0, 1]])
 
     eps = lambda d: pi/300 if (d>0) else -pi/300
     EPS = lambda d: d*pi/300
@@ -373,7 +485,7 @@ def cbMottion(event):
     """Map mouse displacements in Y direction to rotations about X axis,
        and mouse displacements in X direction to rotations about Y axis.""" 
 
-    global tet
+    global tet, tetNormals
     global ax
     global box
     global cube
@@ -389,7 +501,8 @@ def cbMottion(event):
     dy = lastX - event.x
     tet = matMul(ROT_Y(EPS(dy)),tet)
     ax = matMul(ROT_Y(EPS(-dy)), ax)
-    # drawTet(tet,tetColor)  
+    drawTet(tet,tetColor)
+    # drawNormalsPolyhedron(tetNormals)
     box = matMul(ROT_Y(EPS(-dy)), box)
     cube = matMul(ROT_X(EPS(-dx)),cube)
     cube = matMul(ROT_Y(EPS(-dy)), cube)
@@ -397,9 +510,11 @@ def cbMottion(event):
     octa = matMul(ROT_Y(EPS(-dy)), octa)
     dodec = matMul(ROT_X(EPS(-dx)), dodec)
     dodec = matMul(ROT_Y(EPS(-dy)), dodec)
-    drawDodecahedron(dodec, tetColor)    
+    # drawDodecahedron(dodec, tetColor)    
     # drawOctahedron(octa, tetColor)
+    # drawNormalsPolyhedron(octaNormals)
     # drawCube(cube, tetColor)
+    # drawNormalsPolyhedron(cubeNormals)
     # drawBox(box, tetColor)  
     # drawAxes(event)
     # canvas.create_line(translate(ax[0][0], ax[1][0], 200, 200), 
@@ -490,7 +605,6 @@ def main():
     canvas.master.bind('<x>', drawAxes)
     # drawTet(tet,tetColor)
     # drawBox(box, tetColor)
-    drawCube(cube, tetColor)
     mainloop()
 
 if __name__=='__main__':
