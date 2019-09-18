@@ -1,3 +1,5 @@
+from math import sqrt 
+
 def createZeroMat(m,n):
     """Return a matrix (m x n) filled with zeros."""
 
@@ -37,3 +39,12 @@ def translate(x,y,dx,dy):
     """Translate vector(x,y) by (dx,dy)."""
 
     return x+dx, y+dy
+
+def vecDif(m1, m2):
+    m = [0]*3
+    for i in range(3):
+        m[i] = m1[i] - m2[i]
+    return m
+
+def vecLength(v):
+    return sqrt(v[0]**2 + v[1]**2 + v[2]**2)
